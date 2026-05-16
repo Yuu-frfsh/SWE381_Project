@@ -121,8 +121,17 @@ export default function StadiumDetail() {
 
         {/* Stadium Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
-          {stadium.photos?.[0] ? (
-            <img src={stadium.photos[0]} alt={stadium.name} className="w-full h-56 object-cover rounded-xl mb-5" />
+          {stadium.photos?.length > 0 ? (
+            <div className={`grid gap-2 mb-5 ${stadium.photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              {stadium.photos.map((photo, i) => (
+                <img
+                  key={i}
+                  src={`${import.meta.env.VITE_API_URL}${photo}`}
+                  alt={`${stadium.name} photo ${i + 1}`}
+                  className={`w-full object-cover rounded-xl ${stadium.photos.length === 1 ? 'h-56' : 'h-40'}`}
+                />
+              ))}
+            </div>
           ) : (
             <div className="w-full h-56 bg-green-50 rounded-xl mb-5 flex items-center justify-center text-6xl">&#9917;</div>
           )}

@@ -4,7 +4,7 @@ export default function StadiumCard({ stadium }) {
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ease-out overflow-hidden border border-gray-100">
       {stadium.photos?.[0] ? (
-        <img src={stadium.photos[0]} alt={stadium.name} className="w-full h-44 object-cover" />
+        <img src={`${import.meta.env.VITE_API_URL}${stadium.photos[0]}`} alt={stadium.name} className="w-full h-44 object-cover" />
       ) : (
         <div className="w-full h-44 bg-green-50 flex items-center justify-center text-5xl">
           &#9917;

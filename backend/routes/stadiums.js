@@ -25,7 +25,7 @@ router.get('/owner/my', protect, async (req, res, next) => {
 // Public: search stadiums by location and/or available date
 router.get('/', async (req, res, next) => {
   try {
-    const { location, date } = req.query;
+    const { location, date, startTime, endTime } = req.query;
     const query = {};
     if (location) query.location = { $regex: location, $options: 'i' };
 
@@ -33,7 +33,12 @@ router.get('/', async (req, res, next) => {
 
     if (date) {
       const ids = stadiums.map(s => s._id);
-      const available = await Slot.find({ stadium: { $in: ids }, date, status: 'available' });
+      const slotQuery = { stadium: { $in: ids }, date, status: 'available' };
+      if (startTime && endTime) {
+        slotQuery.startTime = { $lt: endTime };
+        slotQuery.endTime = { $gt: startTime };
+      }
+      const available = await Slot.find(slotQuery);
       const hasAvail = new Set(available.map(s => s.stadium.toString()));
       stadiums = stadiums.filter(s => hasAvail.has(s._id.toString()));
     }

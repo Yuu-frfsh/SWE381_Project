@@ -5,6 +5,8 @@ export default function Home() {
   const [stadiums, setStadiums] = useState([]);
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,6 +19,8 @@ export default function Home() {
       const params = new URLSearchParams();
       if (location) params.append('location', location);
       if (date) params.append('date', date);
+      if (date && startTime) params.append('startTime', startTime);
+      if (date && endTime) params.append('endTime', endTime);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums?${params}`);
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const json = await res.json();
@@ -36,25 +40,49 @@ export default function Home() {
           <h1 className="text-4xl font-bold mb-3 tracking-tight">Find &amp; Book Soccer Stadiums</h1>
           <p className="text-green-200 mb-8 text-base">Search available slots and reserve your match time</p>
 
-          <div className="flex flex-col sm:flex-row gap-2.5 bg-white p-2.5 rounded-xl shadow-lg">
-            <input
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder="Search by location..."
-              className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
-            />
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              className="rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
-            />
-            <button
-              onClick={fetchStadiums}
-              className="bg-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-800 transition-colors duration-150"
-            >
-              Search
-            </button>
+          <div className="flex flex-col gap-2.5 bg-white p-2.5 rounded-xl shadow-lg">
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <input
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                placeholder="Search by location..."
+                className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
+              />
+              <input
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className="rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <div className="flex flex-1 items-center gap-2">
+                <label className="text-gray-400 text-xs whitespace-nowrap">From</label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={e => setStartTime(e.target.value)}
+                  disabled={!date}
+                  className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200 disabled:opacity-40"
+                />
+              </div>
+              <div className="flex flex-1 items-center gap-2">
+                <label className="text-gray-400 text-xs whitespace-nowrap">To</label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={e => setEndTime(e.target.value)}
+                  disabled={!date}
+                  className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200 disabled:opacity-40"
+                />
+              </div>
+              <button
+                onClick={fetchStadiums}
+                className="bg-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-800 transition-colors duration-150"
+              >
+                Search
+              </button>
+            </div>
           </div>
         </div>
       </div>
