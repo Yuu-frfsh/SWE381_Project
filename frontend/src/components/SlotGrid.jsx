@@ -24,7 +24,7 @@ export default function SlotGrid({ slots, onReserve, onCancel, currentUser }) {
               {isReserved ? (isMyReservation ? 'Reserved by you' : 'Reserved') : 'Available'}
             </div>
 
-            {currentUser?.role === 'organizer' && !isReserved && (
+            {currentUser?.role === 'user' && !isReserved && (
               <button
                 onClick={() => onReserve(slot._id)}
                 className="mt-2.5 bg-white text-green-700 text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-green-50 transition-colors duration-100"
@@ -33,7 +33,7 @@ export default function SlotGrid({ slots, onReserve, onCancel, currentUser }) {
               </button>
             )}
 
-            {currentUser?.role === 'organizer' && isMyReservation && (
+            {currentUser?.role === 'user' && isMyReservation && (
               <button
                 onClick={() => onCancel(slot._id)}
                 className="mt-2.5 bg-white text-red-600 text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-red-50 transition-colors duration-100"

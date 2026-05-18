@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -12,27 +13,35 @@ function decodeToken(token) {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const [user, setUser] = useState(() => {
+  const [auth, setAuth] = useState(() => {
     const t = localStorage.getItem('token');
-    return t ? decodeToken(t) : null;
+    return { user: t ? decodeToken(t) : null, token: t };
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    const t = localStorage.getItem('token');
+    queueMicrotask(() => {
+      if (isMounted) setAuth({ user: t ? decodeToken(t) : null, token: t });
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function login(token) {
     localStorage.setItem('token', token);
     const userData = decodeToken(token);
-    setToken(token);
-    setUser(userData);
+    setAuth({ user: userData, token });
   }
 
   function logout() {
     localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+    setAuth({ user: null, token: null });
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user: auth.user, token: auth.token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -25,7 +25,10 @@ export default function OwnerDashboard() {
           data.map(s =>
             fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${s._id}/stats`, {
               headers: { Authorization: `Bearer ${token}` },
-            }).then(r => r.json()).then(rs => ({ id: s._id, ...rs }))
+            }).then(r => {
+              if (!r.ok) throw new Error(`Error ${r.status}`);
+              return r.json();
+            }).then(rs => ({ id: s._id, ...rs }))
           )
         );
         const map = {};
@@ -38,7 +41,7 @@ export default function OwnerDashboard() {
       }
     };
     fetchData();
-  }, []);
+  }, [token]);
 
   const totalBookings = Object.values(stats).reduce((sum, s) => sum + (s.reserved || 0), 0);
   const totalAvailable = Object.values(stats).reduce((sum, s) => sum + (s.available || 0), 0);

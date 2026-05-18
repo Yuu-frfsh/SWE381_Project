@@ -26,7 +26,7 @@ export default function MyReservations() {
       }
     };
     fetchReservations();
-  }, []);
+  }, [token]);
 
   async function handleCancel(slotId) {
     setError(null);

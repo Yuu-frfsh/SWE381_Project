@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import MessageThread from '../../components/MessageThread';
 
+function roleLabel(role) {
+  return role === 'user' ? 'Match Organizer' : 'Stadium Owner';
+}
+
 export default function OrganizerMessages() {
   const { token } = useAuth();
   const [conversations, setConversations] = useState([]);
@@ -9,6 +13,8 @@ export default function OrganizerMessages() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState(null);
 
   useEffect(() => {
     const fetchInbox = async () => {
@@ -28,26 +34,50 @@ export default function OrganizerMessages() {
       }
     };
     fetchInbox();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (!activePartner) return;
-    fetch(`${import.meta.env.VITE_API_URL}/api/messages/conversation/${activePartner._id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(r => r.json()).then(setMessages);
-  }, [activePartner]);
+    const fetchMessages = async () => {
+      setMessagesLoading(true);
+      setMessagesError(null);
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages/conversation/${activePartner._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        const json = await res.json();
+        setMessages(json);
+      } catch (err) {
+        setMessagesError(err.message);
+      } finally {
+        setMessagesLoading(false);
+      }
+    };
+    fetchMessages();
+  }, [activePartner, token]);
 
   async function handleSend(content) {
-    await fetch(`${import.meta.env.VITE_API_URL}/api/messages`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ to: activePartner._id, content }),
-    });
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages/conversation/${activePartner._id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const json = await res.json();
-    setMessages(json);
+    setMessagesError(null);
+    try {
+      const sendRes = await fetch(`${import.meta.env.VITE_API_URL}/api/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ to: activePartner._id, content }),
+      });
+      if (!sendRes.ok) throw new Error(`Error ${sendRes.status}`);
+      setMessagesLoading(true);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages/conversation/${activePartner._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const json = await res.json();
+      setMessages(json);
+    } catch (err) {
+      setMessagesError(err.message);
+    } finally {
+      setMessagesLoading(false);
+    }
   }
 
   if (loading) return <p className="text-center mt-20 text-gray-400 text-sm">Loading...</p>;
@@ -76,7 +106,7 @@ export default function OrganizerMessages() {
                 }`}
               >
                 <div className="font-medium text-sm text-gray-800">{c.partner.name}</div>
-                <div className="text-xs text-gray-400 capitalize">{c.partner.role}</div>
+                <div className="text-xs text-gray-400">{roleLabel(c.partner.role)}</div>
                 <div className="text-xs text-gray-500 truncate mt-1">{c.lastMessage.content}</div>
               </button>
             ))}
@@ -92,10 +122,14 @@ export default function OrganizerMessages() {
               <>
                 <div className="pb-3 mb-3 border-b border-gray-100 flex-shrink-0">
                   <p className="font-semibold text-gray-900 text-sm">{activePartner.name}</p>
-                  <p className="text-xs text-gray-400 capitalize">{activePartner.role}</p>
+                  <p className="text-xs text-gray-400">{roleLabel(activePartner.role)}</p>
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <MessageThread messages={messages} onSend={handleSend} />
+                  {messagesLoading && <p className="text-center text-gray-400 text-sm">Loading...</p>}
+                  {messagesError && <p className="text-center text-red-500 text-sm">Error: {messagesError}</p>}
+                  {!messagesLoading && !messagesError && (
+                    <MessageThread messages={messages} onSend={handleSend} />
+                  )}
                 </div>
               </>
             )}

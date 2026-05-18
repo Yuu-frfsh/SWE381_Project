@@ -5,7 +5,7 @@ const protect = require('../middleware/protect');
 // Must come before /:id routes to avoid "my" being treated as an id
 router.get('/my', protect, async (req, res, next) => {
   try {
-    if (req.user.role !== 'organizer') return res.status(403).json({ error: 'Access denied' });
+    if (req.user.role !== 'user') return res.status(403).json({ error: 'Access denied' });
     const slots = await Slot.find({ reservedBy: req.user.id, status: 'reserved' })
       .populate('stadium', 'name location')
       .sort({ date: 1, startTime: 1 });
@@ -17,7 +17,7 @@ router.get('/my', protect, async (req, res, next) => {
 
 router.post('/:id/reserve', protect, async (req, res, next) => {
   try {
-    if (req.user.role !== 'organizer') return res.status(403).json({ error: 'Access denied' });
+    if (req.user.role !== 'user') return res.status(403).json({ error: 'Access denied' });
     const slot = await Slot.findById(req.params.id);
     if (!slot) return res.status(404).json({ error: 'Slot not found' });
     if (slot.status === 'reserved') return res.status(409).json({ error: 'Slot is already reserved' });
@@ -36,7 +36,7 @@ router.post('/:id/reserve', protect, async (req, res, next) => {
 
 router.delete('/:id/reserve', protect, async (req, res, next) => {
   try {
-    if (req.user.role !== 'organizer') return res.status(403).json({ error: 'Access denied' });
+    if (req.user.role !== 'user') return res.status(403).json({ error: 'Access denied' });
     const slot = await Slot.findById(req.params.id);
     if (!slot) return res.status(404).json({ error: 'Slot not found' });
     if (slot.status !== 'reserved') return res.status(400).json({ error: 'Slot is not reserved' });

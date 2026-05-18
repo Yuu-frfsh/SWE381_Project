@@ -17,13 +17,6 @@ function PrivateRoute() {
   return token ? <Outlet /> : <Navigate to="/signin" />;
 }
 
-function RoleRoute({ role }) {
-  const { token, user } = useAuth();
-  if (!token) return <Navigate to="/signin" />;
-  if (user?.role !== role) return <Navigate to="/" />;
-  return <Outlet />;
-}
-
 export default function App() {
   return (
     <AuthProvider>
@@ -35,14 +28,11 @@ export default function App() {
           <Route path="/signin" element={<Signin />} />
           <Route path="/stadiums/:id" element={<StadiumDetail />} />
 
-          <Route element={<RoleRoute role="owner" />}>
+          <Route element={<PrivateRoute />}>
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
             <Route path="/owner/add-stadium" element={<AddStadium />} />
             <Route path="/owner/stadiums/:id/slots" element={<ManageSlots />} />
             <Route path="/owner/messages" element={<OwnerMessages />} />
-          </Route>
-
-          <Route element={<RoleRoute role="organizer" />}>
             <Route path="/my-reservations" element={<MyReservations />} />
             <Route path="/messages" element={<OrganizerMessages />} />
           </Route>

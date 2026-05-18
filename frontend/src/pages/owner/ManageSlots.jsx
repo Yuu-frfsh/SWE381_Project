@@ -23,6 +23,8 @@ export default function ManageSlots() {
   const [endTime, setEndTime] = useState('09:00');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(true);
+  const [slotsError, setSlotsError] = useState(null);
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
@@ -43,24 +45,28 @@ export default function ManageSlots() {
       }
     };
     fetchStadium();
-  }, [id]);
+  }, [id, token]);
 
   useEffect(() => {
-    loadSlots();
-  }, [id, selectedDate]);
-
-  async function loadSlots() {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${id}/slots?date=${selectedDate}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const json = await res.json();
-      setSlots(json);
-    } catch {
-      setSlots([]);
-    }
-  }
+    const fetchSlots = async () => {
+      setSlotsLoading(true);
+      setSlotsError(null);
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${id}/slots?date=${selectedDate}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        const json = await res.json();
+        setSlots(json);
+      } catch (err) {
+        setSlotsError(err.message);
+        setSlots([]);
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+    fetchSlots();
+  }, [id, selectedDate, token]);
 
   async function handleAddSlot() {
     setError(null);
@@ -84,11 +90,20 @@ export default function ManageSlots() {
         setError(data.errors.join(' | '));
       } else {
         setSuccess('Slot added successfully!');
-        loadSlots();
+        setSlotsLoading(true);
+        setSlotsError(null);
+        const slotsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${id}/slots?date=${selectedDate}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!slotsRes.ok) throw new Error(`Error ${slotsRes.status}`);
+        const slotsJson = await slotsRes.json();
+        setSlots(slotsJson);
+        setSlotsLoading(false);
         setTimeout(() => setSuccess(''), 3000);
       }
     } catch (err) {
       setError(err.message);
+      setSlotsLoading(false);
     }
   }
 
@@ -171,7 +186,11 @@ export default function ManageSlots() {
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-red-500 rounded-full"></span> Reserved</span>
             </div>
           </div>
-          <SlotGrid slots={slots} onReserve={() => {}} onCancel={() => {}} currentUser={{ role: 'owner' }} />
+          {slotsLoading && <p className="text-center text-gray-400 text-sm">Loading...</p>}
+          {slotsError && <p className="text-center text-red-500 text-sm">Error: {slotsError}</p>}
+          {!slotsLoading && !slotsError && (
+            <SlotGrid slots={slots} onReserve={() => {}} onCancel={() => {}} currentUser={{ role: 'owner' }} />
+          )}
         </div>
       </div>
     </div>

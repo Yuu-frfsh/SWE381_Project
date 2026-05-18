@@ -10,7 +10,23 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => { fetchStadiums(); }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums`);
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        const json = await res.json();
+        setStadiums(json);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   async function fetchStadiums() {
     setLoading(true);

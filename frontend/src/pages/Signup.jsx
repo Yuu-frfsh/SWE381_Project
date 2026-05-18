@@ -5,7 +5,7 @@ export default function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('organizer');
+  const [role, setRole] = useState('user');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function Signup() {
             <label className="block text-sm font-medium text-gray-700 mb-2">I am a...</label>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { value: 'organizer', label: 'Match Organizer' },
+                { value: 'user', label: 'Match Organizer' },
                 { value: 'owner', label: 'Stadium Owner' },
               ].map(({ value, label }) => (
                 <button

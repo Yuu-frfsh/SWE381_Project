@@ -22,6 +22,8 @@ export default function StadiumDetail() {
   const [selectedDate, setSelectedDate] = useState(days[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(true);
+  const [slotsError, setSlotsError] = useState(null);
   const [msgModal, setMsgModal] = useState(false);
   const [msgText, setMsgText] = useState('');
   const [msgSent, setMsgSent] = useState(false);
@@ -46,13 +48,18 @@ export default function StadiumDetail() {
 
   useEffect(() => {
     const fetchSlots = async () => {
+      setSlotsLoading(true);
+      setSlotsError(null);
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${id}/slots?date=${selectedDate}`);
         if (!res.ok) throw new Error(`Error ${res.status}`);
         const json = await res.json();
         setSlots(json);
-      } catch {
+      } catch (err) {
+        setSlotsError(err.message);
         setSlots([]);
+      } finally {
+        setSlotsLoading(false);
       }
     };
     fetchSlots();
@@ -142,7 +149,7 @@ export default function StadiumDetail() {
               {stadium.description && <p className="text-gray-600 mt-2 leading-relaxed">{stadium.description}</p>}
               <p className="text-sm text-gray-400 mt-2">Owner: {stadium.owner.name}</p>
             </div>
-            {user?.role === 'organizer' && (
+            {user?.role === 'user' && (
               <button
                 onClick={() => setMsgModal(true)}
                 className="flex-shrink-0 bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors duration-150"
@@ -190,7 +197,11 @@ export default function StadiumDetail() {
             </span>
           </div>
 
-          <SlotGrid slots={slots} onReserve={handleReserve} onCancel={handleCancel} currentUser={user} />
+          {slotsLoading && <p className="text-center text-gray-400 text-sm">Loading...</p>}
+          {slotsError && <p className="text-center text-red-500 text-sm">Error: {slotsError}</p>}
+          {!slotsLoading && !slotsError && (
+            <SlotGrid slots={slots} onReserve={handleReserve} onCancel={handleCancel} currentUser={user} />
+          )}
         </div>
       </div>
 

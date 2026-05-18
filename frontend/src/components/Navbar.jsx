@@ -38,7 +38,7 @@ export default function Navbar() {
             </>
           )}
 
-          {user?.role === 'organizer' && (
+          {user?.role === 'user' && (
             <>
               <Link to="/" className="text-green-100 hover:text-white transition-colors duration-150">Search</Link>
               <Link to="/my-reservations" className="text-green-100 hover:text-white transition-colors duration-150">My Reservations</Link>
