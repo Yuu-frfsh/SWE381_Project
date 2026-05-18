@@ -16,6 +16,13 @@ export default function StadiumCard({ stadium }) {
         {stadium.description && (
           <p className="text-sm text-gray-600 mt-2 line-clamp-2 leading-relaxed">{stadium.description}</p>
         )}
+        {stadium.facilities?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {stadium.facilities.slice(0, 3).map(f => (
+              <span key={f} className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{f}</span>
+            ))}
+          </div>
+        )}
         <Link
           to={`/stadiums/${stadium._id}`}
           className="mt-3 inline-block bg-green-700 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-800 transition-colors duration-150 font-medium"

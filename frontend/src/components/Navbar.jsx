@@ -48,7 +48,7 @@ export default function Navbar() {
 
           {user && (
             <div className="flex items-center gap-3 ml-1 pl-4 border-l border-green-600">
-              <span className="text-green-200 text-xs">Hi, {user.name}</span>
+              <Link to="/profile" className="text-green-200 text-xs hover:text-white transition-colors duration-150">Hi, {user.name}</Link>
               <button
                 onClick={handleLogout}
                 className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm transition-colors duration-150"

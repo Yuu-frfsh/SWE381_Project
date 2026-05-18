@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react';
 import StadiumCard from '../components/StadiumCard';
 
+const TIME_OPTIONS = (() => {
+  const opts = [];
+  for (let h = 16; h <= 23; h++) {
+    opts.push(`${String(h).padStart(2, '0')}:00`);
+    opts.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  for (let h = 0; h <= 4; h++) {
+    opts.push(`${String(h).padStart(2, '0')}:00`);
+    if (h < 4) opts.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return opts;
+})();
+
 export default function Home() {
   const [stadiums, setStadiums] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -19,6 +33,7 @@ export default function Home() {
         if (!res.ok) throw new Error(`Error ${res.status}`);
         const json = await res.json();
         setStadiums(json);
+        setLocations([...new Set(json.map(s => s.location).filter(Boolean))]);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -56,49 +71,65 @@ export default function Home() {
           <h1 className="text-4xl font-bold mb-3 tracking-tight">Find &amp; Book Soccer Stadiums</h1>
           <p className="text-green-200 mb-8 text-base">Search available slots and reserve your match time</p>
 
-          <div className="flex flex-col gap-2.5 bg-white p-2.5 rounded-xl shadow-lg">
-            <div className="flex flex-col sm:flex-row gap-2.5">
+          <div className="flex flex-col gap-3">
+
+            {/* Row 1: Location search bar */}
+            <div className="flex gap-2">
               <input
                 value={location}
                 onChange={e => setLocation(e.target.value)}
+                list="location-list"
                 placeholder="Search by location..."
-                className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
+                className="flex-1 rounded-lg px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 border border-transparent"
               />
-              <input
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                className="rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200"
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2.5">
-              <div className="flex flex-1 items-center gap-2">
-                <label className="text-gray-400 text-xs whitespace-nowrap">From</label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={e => setStartTime(e.target.value)}
-                  disabled={!date}
-                  className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200 disabled:opacity-40"
-                />
-              </div>
-              <div className="flex flex-1 items-center gap-2">
-                <label className="text-gray-400 text-xs whitespace-nowrap">To</label>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={e => setEndTime(e.target.value)}
-                  disabled={!date}
-                  className="flex-1 rounded-lg px-3 py-2 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-gray-200 disabled:opacity-40"
-                />
-              </div>
+              <datalist id="location-list">
+                {locations.map(loc => <option key={loc} value={loc} />)}
+              </datalist>
               <button
                 onClick={fetchStadiums}
-                className="bg-green-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-800 transition-colors duration-150"
+                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-500 transition-colors duration-150 whitespace-nowrap"
               >
                 Search
               </button>
             </div>
+
+            {/* Row 2: Date + Time filters grouped in border */}
+            <div className="flex flex-col sm:flex-row gap-0 border border-white/30 rounded-lg overflow-hidden bg-white/10">
+              <div className="flex items-center flex-1 px-3 py-2 border-b sm:border-b-0 sm:border-r border-white/20">
+                <span className="text-green-200 text-xs mr-2 whitespace-nowrap">Date</span>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => { setDate(e.target.value); setStartTime(''); setEndTime(''); }}
+                  className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-green-300 min-w-0"
+                />
+              </div>
+              <div className="flex items-center flex-1 px-3 py-2 border-b sm:border-b-0 sm:border-r border-white/20">
+                <span className="text-green-200 text-xs mr-2 whitespace-nowrap">From</span>
+                <select
+                  value={startTime}
+                  onChange={e => setStartTime(e.target.value)}
+                  disabled={!date}
+                  className="flex-1 bg-transparent text-white text-sm focus:outline-none disabled:opacity-40 min-w-0"
+                >
+                  <option value="" className="text-gray-800">-- Any --</option>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t} className="text-gray-800">{t}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center flex-1 px-3 py-2">
+                <span className="text-green-200 text-xs mr-2 whitespace-nowrap">To</span>
+                <select
+                  value={endTime}
+                  onChange={e => setEndTime(e.target.value)}
+                  disabled={!date}
+                  className="flex-1 bg-transparent text-white text-sm focus:outline-none disabled:opacity-40 min-w-0"
+                >
+                  <option value="" className="text-gray-800">-- Any --</option>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t} className="text-gray-800">{t}</option>)}
+                </select>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

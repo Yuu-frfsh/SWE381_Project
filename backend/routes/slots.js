@@ -7,7 +7,7 @@ router.get('/my', protect, async (req, res, next) => {
   try {
     if (req.user.role !== 'user') return res.status(403).json({ error: 'Access denied' });
     const slots = await Slot.find({ reservedBy: req.user.id, status: 'reserved' })
-      .populate('stadium', 'name location')
+      .populate('stadium', 'name location photos')
       .sort({ date: 1, startTime: 1 });
     res.json(slots);
   } catch (err) {

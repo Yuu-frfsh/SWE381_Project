@@ -68,19 +68,16 @@ export default function OwnerDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="flex gap-6 mb-8 text-sm border-b border-gray-100 pb-6">
-          <div>
-            <span className="font-semibold text-gray-900">{stadiums.length}</span>{' '}
-            <span className="text-gray-500">stadium{stadiums.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-900">{totalBookings}</span>{' '}
-            <span className="text-gray-500">booked</span>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-900">{totalAvailable}</span>{' '}
-            <span className="text-gray-500">available</span>
-          </div>
+        <div className="flex gap-3 mb-8 border-b border-gray-100 pb-6 flex-wrap">
+          <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-1.5 rounded-full">
+            {stadiums.length} Stadium{stadiums.length !== 1 ? 's' : ''}
+          </span>
+          <span className="bg-red-100 text-red-600 text-sm font-semibold px-4 py-1.5 rounded-full">
+            {totalBookings} Booked
+          </span>
+          <span className="bg-green-100 text-green-700 text-sm font-semibold px-4 py-1.5 rounded-full">
+            {totalAvailable} Available
+          </span>
         </div>
 
         {/* Stadiums List */}
@@ -101,30 +98,49 @@ export default function OwnerDashboard() {
             return (
               <div
                 key={s._id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center gap-4"
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex"
               >
-                <div>
-                  <h3 className="font-semibold text-gray-900">{s.name}</h3>
-                  <p className="text-sm text-gray-500 mt-0.5">{s.location}</p>
-                  <div className="flex gap-3 mt-2 text-xs">
-                    <span className="text-red-500 font-medium">{st.reserved ?? 0} reserved</span>
-                    <span className="text-green-700 font-medium">{st.available ?? 0} available</span>
-                    <span className="text-gray-400">{st.total ?? 0} total</span>
+                {s.photos?.[0] ? (
+                  <img
+                    src={`${import.meta.env.VITE_API_URL}${s.photos[0]}`}
+                    alt={s.name}
+                    className="w-24 h-auto object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-24 bg-green-50 flex items-center justify-center text-3xl flex-shrink-0">
+                    &#9917;
                   </div>
-                </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  <Link
-                    to={`/owner/stadiums/${s._id}/slots`}
-                    className="bg-green-700 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-green-800 transition-colors duration-150 font-medium"
-                  >
-                    Manage Slots
-                  </Link>
-                  <Link
-                    to={`/stadiums/${s._id}`}
-                    className="bg-gray-100 text-gray-600 text-sm px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors duration-150 font-medium"
-                  >
-                    View
-                  </Link>
+                )}
+                <div className="p-5 flex flex-1 justify-between items-center gap-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{s.name}</h3>
+                    <p className="text-sm text-gray-500 mt-0.5">{s.location}</p>
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                        {st.total ?? 0} total
+                      </span>
+                      <span className="bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                        {st.reserved ?? 0} reserved
+                      </span>
+                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                        {st.available ?? 0} available
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Link
+                      to={`/owner/stadiums/${s._id}/slots`}
+                      className="bg-green-700 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-green-800 transition-colors duration-150 font-medium"
+                    >
+                      Manage Slots
+                    </Link>
+                    <Link
+                      to={`/stadiums/${s._id}`}
+                      className="bg-gray-100 text-gray-600 text-sm px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors duration-150 font-medium"
+                    >
+                      View
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

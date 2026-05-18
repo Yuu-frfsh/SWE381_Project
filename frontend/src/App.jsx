@@ -11,6 +11,7 @@ import ManageSlots from './pages/owner/ManageSlots';
 import OwnerMessages from './pages/owner/OwnerMessages';
 import MyReservations from './pages/organizer/MyReservations';
 import OrganizerMessages from './pages/organizer/OrganizerMessages';
+import ProfilePage from './pages/ProfilePage';
 
 function PrivateRoute() {
   const { token } = useAuth();
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/owner/messages" element={<OwnerMessages />} />
             <Route path="/my-reservations" element={<MyReservations />} />
             <Route path="/messages" element={<OrganizerMessages />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </BrowserRouter>

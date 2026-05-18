@@ -65,8 +65,10 @@ router.post('/', protect, upload.array('photos', 5), async (req, res, next) => {
   try {
     if (req.user.role !== 'owner') return res.status(403).json({ error: 'Access denied' });
     const { name, description, location } = req.body;
+    let facilities = [];
+    try { facilities = JSON.parse(req.body.facilities || '[]'); } catch { facilities = []; }
     const photos = req.files?.map(f => `/uploads/${f.filename}`) || [];
-    const stadium = await Stadium.create({ name, description, location, photos, owner: req.user.id });
+    const stadium = await Stadium.create({ name, description, location, photos, facilities, owner: req.user.id });
     res.status(201).json(stadium);
   } catch (err) {
     next(err);

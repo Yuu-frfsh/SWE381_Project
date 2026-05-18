@@ -2,15 +2,26 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+const FACILITIES = [
+  'Parking', 'Changing Rooms', 'Lighting (Night Play)', 'Cafeteria',
+  'Showers', 'Seating / Stands', 'First Aid', 'Equipment Rental', 'Restrooms',
+  'Prayer Room', 'Vending Machine',
+];
+
 export default function AddStadium() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [photos, setPhotos] = useState([]);
+  const [facilities, setFacilities] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
   const navigate = useNavigate();
+
+  function toggleFacility(f) {
+    setFacilities(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+  }
 
   async function handleSubmit() {
     setLoading(true);
@@ -20,6 +31,7 @@ export default function AddStadium() {
       fd.append('name', name);
       fd.append('description', description);
       fd.append('location', location);
+      fd.append('facilities', JSON.stringify(facilities));
       photos.forEach(p => fd.append('photos', p));
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums`, {
         method: 'POST',
@@ -49,21 +61,27 @@ export default function AddStadium() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Stadium Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Stadium Name <span className="text-red-500">*</span>
+            </label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. King Fahad Stadium"
+              required
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow duration-150"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Location <span className="text-red-500">*</span>
+            </label>
             <input
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder="e.g. Riyadh, Saudi Arabia"
+              required
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow duration-150"
             />
           </div>
@@ -77,6 +95,29 @@ export default function AddStadium() {
               placeholder="Describe your stadium, facilities, capacity..."
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none transition-shadow duration-150"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
+            <div className="flex flex-wrap gap-2">
+              {FACILITIES.map(f => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => toggleFacility(f)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors duration-150 ${
+                    facilities.includes(f)
+                      ? 'bg-green-700 text-white border-green-700'
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-green-500 hover:text-green-700'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            {facilities.length > 0 && (
+              <p className="text-xs text-gray-400 mt-1.5">{facilities.length} selected</p>
+            )}
           </div>
 
           <div>

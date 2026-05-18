@@ -70,8 +70,20 @@ export default function MyReservations() {
           {slots.map(slot => (
             <div
               key={slot._id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center gap-4"
+              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex"
             >
+              {slot.stadium?.photos?.[0] ? (
+                <img
+                  src={`${import.meta.env.VITE_API_URL}${slot.stadium.photos[0]}`}
+                  alt={slot.stadium.name}
+                  className="w-24 object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-24 bg-green-50 flex items-center justify-center text-3xl flex-shrink-0">
+                  &#9917;
+                </div>
+              )}
+              <div className="p-5 flex flex-1 justify-between items-center gap-4">
               <div>
                 <h3 className="font-semibold text-gray-900">{slot.stadium?.name}</h3>
                 <p className="text-sm text-gray-500 mt-0.5">{slot.stadium?.location}</p>
@@ -97,6 +109,7 @@ export default function MyReservations() {
                 >
                   Cancel
                 </button>
+              </div>
               </div>
             </div>
           ))}

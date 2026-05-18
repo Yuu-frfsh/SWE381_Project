@@ -27,6 +27,7 @@ export default function StadiumDetail() {
   const [msgModal, setMsgModal] = useState(false);
   const [msgText, setMsgText] = useState('');
   const [msgSent, setMsgSent] = useState(false);
+  const [pendingSlot, setPendingSlot] = useState(null);
 
   useEffect(() => {
     const fetchStadium = async () => {
@@ -126,6 +127,14 @@ export default function StadiumDetail() {
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
 
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-4 transition-colors duration-150"
+        >
+          &#8592; Back
+        </button>
+
         {/* Stadium Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
           {stadium.photos?.length > 0 ? (
@@ -147,6 +156,13 @@ export default function StadiumDetail() {
               <h1 className="text-2xl font-bold text-gray-900">{stadium.name}</h1>
               <p className="text-gray-500 mt-1">{stadium.location}</p>
               {stadium.description && <p className="text-gray-600 mt-2 leading-relaxed">{stadium.description}</p>}
+              {stadium.facilities?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-3">
+                  {stadium.facilities.map(f => (
+                    <span key={f} className="text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-0.5 rounded-full font-medium">{f}</span>
+                  ))}
+                </div>
+              )}
               <p className="text-sm text-gray-400 mt-2">Owner: {stadium.owner.name}</p>
             </div>
             {user?.role === 'user' && (
@@ -200,10 +216,45 @@ export default function StadiumDetail() {
           {slotsLoading && <p className="text-center text-gray-400 text-sm">Loading...</p>}
           {slotsError && <p className="text-center text-red-500 text-sm">Error: {slotsError}</p>}
           {!slotsLoading && !slotsError && (
-            <SlotGrid slots={slots} onReserve={handleReserve} onCancel={handleCancel} currentUser={user} />
+            <SlotGrid
+              slots={slots}
+              onReserve={slotId => setPendingSlot(slots.find(s => s._id === slotId))}
+              onCancel={handleCancel}
+              currentUser={user}
+            />
           )}
         </div>
       </div>
+
+      {/* Booking Confirmation Modal */}
+      {pendingSlot && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Confirm Booking</h3>
+            <p className="text-sm text-gray-500 mb-4">You are about to book the following slot:</p>
+            <div className="bg-green-50 rounded-xl px-4 py-3 mb-5 text-center">
+              <p className="text-lg font-bold text-green-800">
+                {pendingSlot.startTime} &ndash; {pendingSlot.endTime}
+              </p>
+              <p className="text-sm text-green-600 mt-0.5">{selectedDate}</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => { await handleReserve(pendingSlot._id); setPendingSlot(null); }}
+                className="flex-1 bg-green-700 text-white py-2 rounded-lg font-semibold text-sm hover:bg-green-800 transition-colors duration-150"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setPendingSlot(null)}
+                className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg font-semibold text-sm hover:bg-gray-200 transition-colors duration-150"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Message Modal */}
       {msgModal && (

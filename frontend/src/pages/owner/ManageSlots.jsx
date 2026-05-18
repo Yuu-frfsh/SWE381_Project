@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import SlotGrid from '../../components/SlotGrid';
 
@@ -11,16 +11,36 @@ function getNext7Days() {
   });
 }
 
+const TIME_OPTIONS = (() => {
+  const opts = [];
+  for (let h = 16; h <= 23; h++) {
+    opts.push(`${String(h).padStart(2, '0')}:00`);
+    opts.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  for (let h = 0; h <= 4; h++) {
+    opts.push(`${String(h).padStart(2, '0')}:00`);
+    if (h < 4) opts.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return opts;
+})();
+
+function hasOverlap(existingSlots, date, startTime, endTime) {
+  return existingSlots.some(
+    s => s.date === date && s.startTime < endTime && s.endTime > startTime
+  );
+}
+
 export default function ManageSlots() {
   const { id } = useParams();
   const { token } = useAuth();
+  const navigate = useNavigate();
   const days = getNext7Days();
 
   const [stadium, setStadium] = useState(null);
   const [slots, setSlots] = useState([]);
   const [selectedDate, setSelectedDate] = useState(days[0]);
-  const [startTime, setStartTime] = useState('08:00');
-  const [endTime, setEndTime] = useState('09:00');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -71,8 +91,16 @@ export default function ManageSlots() {
   async function handleAddSlot() {
     setError(null);
     setSuccess('');
+    if (!startTime || !endTime) {
+      setError('Please select both start and end times');
+      return;
+    }
     if (startTime >= endTime) {
       setError('Start time must be before end time');
+      return;
+    }
+    if (hasOverlap(slots, selectedDate, startTime, endTime)) {
+      setError('This time slot overlaps with an existing slot');
       return;
     }
     try {
@@ -90,6 +118,8 @@ export default function ManageSlots() {
         setError(data.errors.join(' | '));
       } else {
         setSuccess('Slot added successfully!');
+        setStartTime('');
+        setEndTime('');
         setSlotsLoading(true);
         setSlotsError(null);
         const slotsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${id}/slots?date=${selectedDate}`, {
@@ -113,6 +143,15 @@ export default function ManageSlots() {
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
+
+        {/* Back button */}
+        <Link
+          to="/owner/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-4 transition-colors duration-150"
+        >
+          &#8592; Back to Dashboard
+        </Link>
+
         <h1 className="text-2xl font-bold text-gray-900 mb-0.5">Manage Slots</h1>
         <p className="text-gray-500 text-sm mb-6">{stadium.name} &mdash; {stadium.location}</p>
 
@@ -152,21 +191,25 @@ export default function ManageSlots() {
           <div className="flex flex-wrap gap-3 items-end">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5">Start Time</label>
-              <input
-                type="time"
+              <select
                 value={startTime}
                 onChange={e => setStartTime(e.target.value)}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
+              >
+                <option value="">-- Select --</option>
+                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5">End Time</label>
-              <input
-                type="time"
+              <select
                 value={endTime}
                 onChange={e => setEndTime(e.target.value)}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
+              >
+                <option value="">-- Select --</option>
+                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
             <button
               onClick={handleAddSlot}

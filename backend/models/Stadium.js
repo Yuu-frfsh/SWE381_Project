@@ -6,6 +6,7 @@ const stadiumSchema = new mongoose.Schema(
     description: { type: String, trim: true },
     location: { type: String, required: [true, 'Location is required'], trim: true },
     photos: [{ type: String }],
+    facilities: { type: [String], default: [] },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: [true, 'Owner is required'] },
   },
   { timestamps: true }

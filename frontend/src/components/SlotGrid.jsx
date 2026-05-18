@@ -29,7 +29,7 @@ export default function SlotGrid({ slots, onReserve, onCancel, currentUser }) {
                 onClick={() => onReserve(slot._id)}
                 className="mt-2.5 bg-white text-green-700 text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-green-50 transition-colors duration-100"
               >
-                Reserve
+                Book
               </button>
             )}
 
