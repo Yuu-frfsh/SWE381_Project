@@ -43,6 +43,20 @@ export default function OwnerDashboard() {
     fetchData();
   }, [token]);
 
+  async function handleToggleHidden(stadiumId, currentHidden) {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/stadiums/${stadiumId}/hidden`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+      setStadiums(prev => prev.map(s => s._id === stadiumId ? { ...s, hidden: data.hidden } : s));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   const totalBookings = Object.values(stats).reduce((sum, s) => sum + (s.reserved || 0), 0);
   const totalAvailable = Object.values(stats).reduce((sum, s) => sum + (s.available || 0), 0);
 
@@ -98,7 +112,7 @@ export default function OwnerDashboard() {
             return (
               <div
                 key={s._id}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex"
+                className={`bg-white rounded-xl shadow-sm border overflow-hidden flex ${s.hidden ? 'border-gray-300 opacity-75' : 'border-gray-100'}`}
               >
                 {s.photos?.[0] ? (
                   <img
@@ -113,7 +127,12 @@ export default function OwnerDashboard() {
                 )}
                 <div className="p-5 flex flex-1 justify-between items-center gap-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{s.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">{s.name}</h3>
+                      {s.hidden && (
+                        <span className="bg-gray-200 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">Hidden</span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500 mt-0.5">{s.location}</p>
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
@@ -127,7 +146,7 @@ export default function OwnerDashboard() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 flex-shrink-0 flex-wrap justify-end">
                     <Link
                       to={`/owner/stadiums/${s._id}/slots`}
                       className="bg-green-700 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-green-800 transition-colors duration-150 font-medium"
@@ -140,6 +159,16 @@ export default function OwnerDashboard() {
                     >
                       View
                     </Link>
+                    <button
+                      onClick={() => handleToggleHidden(s._id, s.hidden)}
+                      className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-colors duration-150 ${
+                        s.hidden
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {s.hidden ? 'Unhide' : 'Hide'}
+                    </button>
                   </div>
                 </div>
               </div>

@@ -26,7 +26,7 @@ router.get('/owner/my', protect, async (req, res, next) => {
 router.get('/', async (req, res, next) => {
   try {
     const { location, date, startTime, endTime } = req.query;
-    const query = {};
+    const query = { hidden: { $ne: true } };
     if (location) query.location = { $regex: location, $options: 'i' };
 
     let stadiums = await Stadium.find(query).populate('owner', 'name email').sort({ createdAt: -1 });
@@ -75,6 +75,22 @@ router.post('/', protect, upload.array('photos', 5), async (req, res, next) => {
   }
 });
 
+// Owner: toggle hidden status
+router.patch('/:id/hidden', protect, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'owner') return res.status(403).json({ error: 'Access denied' });
+    const stadium = await Stadium.findById(req.params.id);
+    if (!stadium) return res.status(404).json({ error: 'Stadium not found' });
+    if (stadium.owner.toString() !== req.user.id)
+      return res.status(403).json({ error: 'Not your stadium' });
+    stadium.hidden = !stadium.hidden;
+    await stadium.save();
+    res.json({ hidden: stadium.hidden });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Owner: add slots (next 7 days only)
 router.post('/:id/slots', protect, async (req, res, next) => {
   try {
@@ -84,10 +100,13 @@ router.post('/:id/slots', protect, async (req, res, next) => {
     if (stadium.owner.toString() !== req.user.id)
       return res.status(403).json({ error: 'Not your stadium' });
 
-    const today = new Date();
+    const now = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
     const maxDate = new Date(today);
     maxDate.setDate(maxDate.getDate() + 7);
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
     const { slots } = req.body;
     const created = [];
@@ -99,8 +118,16 @@ router.post('/:id/slots', protect, async (req, res, next) => {
         errors.push(`${s.date} is outside the 7-day window`);
         continue;
       }
-      if (s.startTime >= s.endTime) {
-        errors.push(`Start time must be before end time for ${s.date}`);
+      if (s.date === todayStr && s.startTime <= currentTime) {
+        errors.push(`Cannot add a slot in the past. Please select a future time for ${s.date}`);
+        continue;
+      }
+      if (s.startTime === s.endTime) {
+        errors.push(`Start time and end time cannot be the same for ${s.date}`);
+        continue;
+      }
+      if (s.endTime < s.startTime) {
+        errors.push(`End time must be after start time for ${s.date}`);
         continue;
       }
       try {

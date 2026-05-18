@@ -8,6 +8,7 @@ const stadiumSchema = new mongoose.Schema(
     photos: [{ type: String }],
     facilities: { type: [String], default: [] },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: [true, 'Owner is required'] },
+    hidden: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

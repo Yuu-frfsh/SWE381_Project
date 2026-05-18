@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Slot = require('../models/Slot');
+const Stadium = require('../models/Stadium');
 const protect = require('../middleware/protect');
 
 // Must come before /:id routes to avoid "my" being treated as an id
@@ -49,6 +50,24 @@ router.delete('/:id/reserve', protect, async (req, res, next) => {
       { new: true, runValidators: true }
     );
     res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Owner: permanently delete an available slot
+router.delete('/:id', protect, async (req, res, next) => {
+  try {
+    if (req.user.role !== 'owner') return res.status(403).json({ error: 'Access denied' });
+    const slot = await Slot.findById(req.params.id);
+    if (!slot) return res.status(404).json({ error: 'Slot not found' });
+    const stadium = await Stadium.findById(slot.stadium);
+    if (!stadium || stadium.owner.toString() !== req.user.id)
+      return res.status(403).json({ error: 'Not your stadium' });
+    if (slot.status === 'reserved')
+      return res.status(409).json({ error: 'Cannot delete a reserved slot' });
+    await slot.deleteOne();
+    res.json({ message: 'Slot deleted' });
   } catch (err) {
     next(err);
   }

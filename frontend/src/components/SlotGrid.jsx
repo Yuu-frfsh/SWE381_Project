@@ -1,4 +1,4 @@
-export default function SlotGrid({ slots, onReserve, onCancel, currentUser }) {
+export default function SlotGrid({ slots, onReserve, onCancel, onDelete, currentUser }) {
   if (!slots.length) {
     return (
       <p className="text-gray-400 text-center py-10 text-sm">No slots added for this date.</p>
@@ -40,6 +40,22 @@ export default function SlotGrid({ slots, onReserve, onCancel, currentUser }) {
               >
                 Cancel
               </button>
+            )}
+
+            {currentUser?.role === 'owner' && (
+              <span title={isReserved ? 'Cannot delete a reserved slot' : undefined} className="inline-block mt-2.5">
+                <button
+                  onClick={() => !isReserved && onDelete(slot._id)}
+                  disabled={isReserved}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors duration-100 ${
+                    isReserved
+                      ? 'bg-white/30 text-white/50 cursor-not-allowed'
+                      : 'bg-white text-red-600 hover:bg-red-50'
+                  }`}
+                >
+                  Delete
+                </button>
+              </span>
             )}
           </div>
         );

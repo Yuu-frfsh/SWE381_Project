@@ -3,13 +3,9 @@ import StadiumCard from '../components/StadiumCard';
 
 const TIME_OPTIONS = (() => {
   const opts = [];
-  for (let h = 16; h <= 23; h++) {
+  for (let h = 0; h <= 23; h++) {
     opts.push(`${String(h).padStart(2, '0')}:00`);
     opts.push(`${String(h).padStart(2, '0')}:30`);
-  }
-  for (let h = 0; h <= 4; h++) {
-    opts.push(`${String(h).padStart(2, '0')}:00`);
-    if (h < 4) opts.push(`${String(h).padStart(2, '0')}:30`);
   }
   return opts;
 })();
@@ -23,6 +19,7 @@ export default function Home() {
   const [endTime, setEndTime] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pastWarning, setPastWarning] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +41,28 @@ export default function Home() {
   }, []);
 
   async function fetchStadiums() {
+    setPastWarning('');
+
+    if (date) {
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+
+      if (date < today) {
+        setPastWarning('The selected date is in the past. Please choose today or a future date.');
+        return;
+      }
+
+      if (date === today && startTime) {
+        const [h, m] = startTime.split(':').map(Number);
+        const selected = new Date();
+        selected.setHours(h, m, 0, 0);
+        if (selected < now) {
+          setPastWarning('The selected start time has already passed today. Please choose a later time.');
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -80,7 +99,7 @@ export default function Home() {
                 onChange={e => setLocation(e.target.value)}
                 list="location-list"
                 placeholder="Search by location..."
-                className="flex-1 rounded-lg px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 border border-transparent"
+                className="flex-1 rounded-lg px-4 py-3 text-gray-800 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-white border-2 border-white/70"
               />
               <datalist id="location-list">
                 {locations.map(loc => <option key={loc} value={loc} />)}
@@ -100,7 +119,7 @@ export default function Home() {
                 <input
                   type="date"
                   value={date}
-                  onChange={e => { setDate(e.target.value); setStartTime(''); setEndTime(''); }}
+                  onChange={e => { setDate(e.target.value); setStartTime(''); setEndTime(''); setPastWarning(''); }}
                   className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder-green-300 min-w-0"
                 />
               </div>
@@ -131,6 +150,13 @@ export default function Home() {
             </div>
 
           </div>
+
+          {pastWarning && (
+            <div className="mt-4 flex items-center gap-2 bg-yellow-400/20 border border-yellow-300/60 text-yellow-100 text-sm rounded-lg px-4 py-3">
+              <span>⚠</span>
+              <span>{pastWarning}</span>
+            </div>
+          )}
         </div>
       </div>
 

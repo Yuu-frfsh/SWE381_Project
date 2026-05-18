@@ -7,6 +7,7 @@ export default function MyReservations() {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pendingCancelSlot, setPendingCancelSlot] = useState(null);
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -104,7 +105,7 @@ export default function MyReservations() {
                   View
                 </Link>
                 <button
-                  onClick={() => handleCancel(slot._id)}
+                  onClick={() => setPendingCancelSlot(slot)}
                   className="bg-red-500 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors duration-150 font-medium"
                 >
                   Cancel
@@ -115,6 +116,36 @@ export default function MyReservations() {
           ))}
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {pendingCancelSlot && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Cancel Reservation</h3>
+            <p className="text-sm text-gray-500 mb-4">Are you sure you want to cancel this reservation?</p>
+            <div className="bg-red-50 rounded-xl px-4 py-3 mb-5 text-center">
+              <p className="text-lg font-bold text-red-700">
+                {pendingCancelSlot.startTime} &ndash; {pendingCancelSlot.endTime}
+              </p>
+              <p className="text-sm text-red-500 mt-0.5">{pendingCancelSlot.date}</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => { await handleCancel(pendingCancelSlot._id); setPendingCancelSlot(null); }}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-red-700 transition-colors duration-150"
+              >
+                Yes, Cancel
+              </button>
+              <button
+                onClick={() => setPendingCancelSlot(null)}
+                className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg font-semibold text-sm hover:bg-gray-200 transition-colors duration-150"
+              >
+                Keep
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

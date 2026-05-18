@@ -32,17 +32,16 @@ export default function Navbar() {
 
           {user?.role === 'owner' && (
             <>
-              <Link to="/owner/dashboard" className="text-green-100 hover:text-white transition-colors duration-150">Dashboard</Link>
-              <Link to="/owner/add-stadium" className="text-green-100 hover:text-white transition-colors duration-150">Add Stadium</Link>
-              <Link to="/owner/messages" className="text-green-100 hover:text-white transition-colors duration-150">Messages</Link>
+              <Link to="/owner/dashboard" className="border border-green-400 text-green-100 hover:bg-green-700 hover:text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150">Dashboard</Link>
+              <Link to="/owner/messages" className="border border-green-400 text-green-100 hover:bg-green-700 hover:text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150">Messages</Link>
             </>
           )}
 
           {user?.role === 'user' && (
             <>
-              <Link to="/" className="text-green-100 hover:text-white transition-colors duration-150">Search</Link>
-              <Link to="/my-reservations" className="text-green-100 hover:text-white transition-colors duration-150">My Reservations</Link>
-              <Link to="/messages" className="text-green-100 hover:text-white transition-colors duration-150">Messages</Link>
+              <Link to="/" className="border border-green-400 text-green-100 hover:bg-green-700 hover:text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150">Search</Link>
+              <Link to="/my-reservations" className="border border-green-400 text-green-100 hover:bg-green-700 hover:text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150">My Reservations</Link>
+              <Link to="/messages" className="border border-green-400 text-green-100 hover:bg-green-700 hover:text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150">Messages</Link>
             </>
           )}
 

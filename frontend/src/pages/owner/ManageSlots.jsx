@@ -13,13 +13,9 @@ function getNext7Days() {
 
 const TIME_OPTIONS = (() => {
   const opts = [];
-  for (let h = 16; h <= 23; h++) {
+  for (let h = 0; h <= 23; h++) {
     opts.push(`${String(h).padStart(2, '0')}:00`);
     opts.push(`${String(h).padStart(2, '0')}:30`);
-  }
-  for (let h = 0; h <= 4; h++) {
-    opts.push(`${String(h).padStart(2, '0')}:00`);
-    if (h < 4) opts.push(`${String(h).padStart(2, '0')}:30`);
   }
   return opts;
 })();
@@ -88,6 +84,34 @@ export default function ManageSlots() {
     fetchSlots();
   }, [id, selectedDate, token]);
 
+  function isPastSlot(date, time) {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (date !== todayStr || !time) return false;
+    const [h, m] = time.split(':').map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(h, m, 0, 0);
+    return slotTime <= now;
+  }
+
+  async function handleDeleteSlot(slotId) {
+    if (!window.confirm('Are you sure you want to permanently delete this slot?')) return;
+    setError(null);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/slots/${slotId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || `Error ${res.status}`);
+      }
+      setSlots(prev => prev.filter(s => s._id !== slotId));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function handleAddSlot() {
     setError(null);
     setSuccess('');
@@ -95,8 +119,16 @@ export default function ManageSlots() {
       setError('Please select both start and end times');
       return;
     }
-    if (startTime >= endTime) {
-      setError('Start time must be before end time');
+    if (isPastSlot(selectedDate, startTime)) {
+      setError('Cannot add a slot in the past. Please select a future date and time.');
+      return;
+    }
+    if (startTime === endTime) {
+      setError('Start time and end time cannot be the same');
+      return;
+    }
+    if (endTime < startTime) {
+      setError('End time must be after start time');
       return;
     }
     if (hasOverlap(slots, selectedDate, startTime, endTime)) {
@@ -193,7 +225,15 @@ export default function ManageSlots() {
               <label className="block text-xs font-medium text-gray-500 mb-1.5">Start Time</label>
               <select
                 value={startTime}
-                onChange={e => setStartTime(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value;
+                  setStartTime(val);
+                  if (isPastSlot(selectedDate, val)) {
+                    setError('Cannot add a slot in the past. Please select a future date and time.');
+                  } else {
+                    setError(null);
+                  }
+                }}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="">-- Select --</option>
@@ -204,7 +244,15 @@ export default function ManageSlots() {
               <label className="block text-xs font-medium text-gray-500 mb-1.5">End Time</label>
               <select
                 value={endTime}
-                onChange={e => setEndTime(e.target.value)}
+                onChange={e => {
+                  const val = e.target.value;
+                  setEndTime(val);
+                  if (val && startTime && val <= startTime) {
+                    setError('End time must be after start time');
+                  } else {
+                    setError(null);
+                  }
+                }}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="">-- Select --</option>
@@ -232,7 +280,7 @@ export default function ManageSlots() {
           {slotsLoading && <p className="text-center text-gray-400 text-sm">Loading...</p>}
           {slotsError && <p className="text-center text-red-500 text-sm">Error: {slotsError}</p>}
           {!slotsLoading && !slotsError && (
-            <SlotGrid slots={slots} onReserve={() => {}} onCancel={() => {}} currentUser={{ role: 'owner' }} />
+            <SlotGrid slots={slots} onReserve={() => {}} onCancel={() => {}} onDelete={handleDeleteSlot} currentUser={{ role: 'owner' }} />
           )}
         </div>
       </div>
